@@ -1,0 +1,12 @@
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+
+# Pliki kompilacji / tymczasowe
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.d
+*.su
