@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#include "buttons.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -56,7 +58,11 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void buzzer_beep(uint32_t ms) {
+  HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
+  HAL_Delay(ms);
+  HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+}
 /* USER CODE END 0 */
 
 /**
@@ -90,13 +96,36 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-
+buttons_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    switch (buttons()) {
+      case BTN_START:
+        HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_SET);
+        buzzer_beep(100);
+        HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port,PAUSE_LED_Pin, GPIO_PIN_RESET);
+        break;
+      case BTN_PAUSE:
+        HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port, PAUSE_LED_Pin, GPIO_PIN_SET);
+        buzzer_beep(100);
+        HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_RESET);
+        break;
+      case BTN_RESET:
+        HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port,PAUSE_LED_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_SET);
+        buzzer_beep(100);
+        break;
+      default:
+        break;
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
