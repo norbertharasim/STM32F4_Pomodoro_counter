@@ -21,6 +21,8 @@
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 #include "buttons.h"
+#include<stdio.h>
+#include<stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -64,6 +66,17 @@ void buzzer_beep(uint32_t ms) {
   HAL_Delay(ms);
   HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
+#define CZAS_PRACY_S 10
+uint32_t sekundy = CZAS_PRACY_S;
+
+void timer_update() {
+  char napis[8];
+  snprintf(napis, sizeof(napis), "%02lu:%02lu", sekundy / 60, sekundy % 60);
+  ssd1306_Fill(Black);
+  ssd1306_SetCursor(10, 20);
+  ssd1306_WriteString(napis, Font_16x26, White);
+  ssd1306_UpdateScreen();
+}
 /* USER CODE END 0 */
 
 /**
@@ -97,39 +110,39 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-buttons_init();
-  // Diagnostyka
-  if (HAL_I2C_IsDeviceReady(&hi2c1, 0x3C << 1, 3, 100) == HAL_OK) {
-    HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_SET);
-  }
-
+  buttons_init();
   ssd1306_Init();
-  ssd1306_Fill(Black);
-  ssd1306_SetCursor(10, 5);
-  ssd1306_WriteString("Pomodoro", Font_11x18, White);
-  ssd1306_SetCursor(10, 30);
-  ssd1306_WriteString("25:00", Font_16x26, White);
-  ssd1306_UpdateScreen();
+  timer_update();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t counter = 0;
+  bool odlicza = false;
   while (1)
   {
     switch (buttons()) {
       case BTN_START:
+        if (sekundy > 0) {
+          odlicza = true;
+          counter = HAL_GetTick();
+        }
         HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_SET);
-        buzzer_beep(1000);
+        buzzer_beep(100);
         HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port,PAUSE_LED_Pin, GPIO_PIN_RESET);
         break;
       case BTN_PAUSE:
+        odlicza = false;
         HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port, PAUSE_LED_Pin, GPIO_PIN_SET);
         buzzer_beep(100);
         HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_RESET);
         break;
       case BTN_RESET:
+        odlicza = false;
+        sekundy = CZAS_PRACY_S;
+        timer_update();
         HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port,PAUSE_LED_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_SET);
@@ -137,6 +150,10 @@ buttons_init();
         break;
       default:
         break;
+    }
+    if (odlicza && (HAL_GetTick() - counter) >= 1000) {
+      sekundy --;
+      timer_update();
     }
 
     /* USER CODE END WHILE */
