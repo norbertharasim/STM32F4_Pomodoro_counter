@@ -18,7 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
 #include "buttons.h"
 
 /* Private includes ----------------------------------------------------------*/
