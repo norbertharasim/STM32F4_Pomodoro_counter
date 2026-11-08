@@ -98,6 +98,18 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 buttons_init();
+  // Diagnostyka
+  if (HAL_I2C_IsDeviceReady(&hi2c1, 0x3C << 1, 3, 100) == HAL_OK) {
+    HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_SET);
+  }
+
+  ssd1306_Init();
+  ssd1306_Fill(Black);
+  ssd1306_SetCursor(10, 5);
+  ssd1306_WriteString("Pomodoro", Font_11x18, White);
+  ssd1306_SetCursor(10, 30);
+  ssd1306_WriteString("25:00", Font_16x26, White);
+  ssd1306_UpdateScreen();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -107,7 +119,7 @@ buttons_init();
     switch (buttons()) {
       case BTN_START:
         HAL_GPIO_WritePin(START_LED_GPIO_Port, START_LED_Pin, GPIO_PIN_SET);
-        buzzer_beep(100);
+        buzzer_beep(1000);
         HAL_GPIO_WritePin(RESET_LED_GPIO_Port, RESET_LED_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(PAUSE_LED_GPIO_Port,PAUSE_LED_Pin, GPIO_PIN_RESET);
         break;
